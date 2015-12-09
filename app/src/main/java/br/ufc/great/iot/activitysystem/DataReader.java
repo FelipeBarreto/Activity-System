@@ -30,6 +30,7 @@ public class DataReader{
 
     public void stopDetection(){
         running = false;
+        if(mReader !=null)
         mReader.interrupt();
     }
 

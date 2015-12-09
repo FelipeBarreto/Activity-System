@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import br.ufc.great.syssu.base.Tuple;
+
 public class MainActivity extends AppCompatActivity {
 
     private DataReader mDataReader;
@@ -19,10 +21,17 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvSensorID;
     private TextView tvZoneID;
 
+    private SyssuManager mSyssu;
+    private boolean running;
+    private String myId = "Felipe";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mSyssu = SyssuManager.getInstance(this);
+        mSyssu.start();
 
         mDataReader = new DataReader(this);
 
@@ -53,6 +62,25 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                running = true;
+                Tuple t = (Tuple) new Tuple().addField("ContextKey", "context.device.id")
+                        .addField("DeviceId", myId);
+                while(running){
+                    mSyssu.put(t);
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+
     }
 
     @Override
@@ -60,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if(mDataReader != null) {
             mDataReader.stopDetection();
+            running = false;
         }
     }
 
